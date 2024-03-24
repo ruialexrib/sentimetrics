@@ -60,4 +60,5 @@ def train(model_name):
     print("Treinando o modelo", file_path)
     pipeline.train_model(file_path)
     pipeline.save_model()
+    pipeline.load_model()
     return redirect(url_for('index'))
