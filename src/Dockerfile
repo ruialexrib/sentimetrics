@@ -1,5 +1,5 @@
 # Use a imagem base oficial do Python
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 # Defina o diretório de trabalho dentro do contêiner
 WORKDIR /app
@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Exponha a porta 5000 para acessar a aplicação Flask
-EXPOSE 8081
+EXPOSE 8082
 
 # Comando para iniciar a aplicação Flask quando o contêiner for iniciado
 CMD [ "python", "app.py" ]
