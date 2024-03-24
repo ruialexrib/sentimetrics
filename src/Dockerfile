@@ -8,7 +8,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Instale as dependências necessárias
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --root-user-action=ignore --no-cache-dir -r requirements.txt
 
 # Copie todo o conteúdo do diretório atual para o diretório de trabalho no contêiner
 COPY . .
