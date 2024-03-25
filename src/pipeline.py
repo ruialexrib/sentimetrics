@@ -80,14 +80,14 @@ class Pipeline:
         bestfeatures = [vectorizer2.get_feature_names_out()[t]
                         for t in selected_features]
         vectorizer3 = TfidfVectorizer(min_df=10, vocabulary=bestfeatures)
-        self.vectorizer3 = vectorizer3
+        self.vectorizer3 = vectorizer3  
         bow3 = self.vectorizer3.fit_transform(df['Text'])
 
         # Divisão dos dados em treino e teste
         X_train, X_test, y_train, y_test = train_test_split(
             bow3, labels, test_size=0.1)
 
-        # Treinamento do modelo
+        # Treino do modelo
         classifier = RandomForestClassifier()
         classifier.fit(X_train, y_train)
 
