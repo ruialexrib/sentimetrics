@@ -11,6 +11,17 @@ from sklearn.model_selection import train_test_split
 import joblib
 
 
+# Pipeline class
+# This class represents the pipeline for training and using the sentiment analysis model.
+# It has several methods for preprocessing the text, training the model, saving and loading the model, and making predictions.
+# The class has a constructor that initializes the file_path attribute to None.
+# The class has a preprocess_text method that preprocesses the text by converting it to lowercase, expanding contractions, removing punctuation and stopwords, and lemmatizing the text.
+# The class has a save_model method that saves the trained model to disk.
+# The class has a load_model method that loads the trained model from disk.
+# The class has a train_model method that trains the sentiment analysis model using the data from the specified file.
+# The class has a predict_sentiment method that predicts the sentiment of a given text using the trained model.
+# The Pipeline class encapsulates the logic for training and using the sentiment analysis model.
+# It provides methods for preprocessing the text, training the model, saving and loading the model, and making predictions.
 class Pipeline:
     def __init__(self, file_path=None):
         nltk.download('stopwords')
@@ -20,33 +31,36 @@ class Pipeline:
         self.file_path = file_path
         pass
 
-    # Pré-processamento do texto
+    # text preprocessing
     def preprocess_text(self, text):
-
-        # Converte para minúsculas
+            
+        # converts text to lowercase
         text = text.lower()
 
-        # expande contrações
+        # expands contractions
         text = contractions.fix(text)
 
-        # Remove pontuação
+        # removes punctuation
         text = ''.join(
             [char for char in text if char not in string.punctuation])
 
-        # Remove stopwords
+        # removes stopwords
         stop_words = set(stopwords.words('english'))
         text = ' '.join([word for word in text.split()
                         if word.lower() not in stop_words])
-        # Lematização
-
+        
+        # lemmatization
         lemmatizer = WordNetLemmatizer()
         text = ' '.join([lemmatizer.lemmatize(word) for word in text.split()])
 
-        # Remove pontuação novamente
+        # removes punctuation again
         text = ''.join(
             [char for char in text if char not in string.punctuation])
+        
+        # returns the preprocessed text
         return text
 
+    # saves the trained model to disk
     def save_model(self):
         if self.classifier is None or self.vectorizer3 is None:
             raise Exception(
@@ -54,16 +68,17 @@ class Pipeline:
         joblib.dump(self.classifier, 'model.pkl')
         joblib.dump(self.vectorizer3,  'vectorizer.pkl')
 
+    # loads the trained model from disk
     def load_model(self):
         self.classifier = joblib.load('model.pkl')
         self.vectorizer3 = joblib.load('vectorizer.pkl')
 
-    # Treino do modelo
+    # trains the sentiment analysis model using the data from the specified file
     def train_model(self, file_path):
         self.file_path = file_path
         df = pd.read_csv(self.file_path)
 
-        # Pré-processamento dos dados
+        # text preprocessing
         df["Text"] = df["Text"].apply(self.preprocess_text)
         df = df.dropna()
 
@@ -83,28 +98,30 @@ class Pipeline:
         self.vectorizer3 = vectorizer3  
         bow3 = self.vectorizer3.fit_transform(df['Text'])
 
-        # Divisão dos dados em treino e teste
+        # Splitting the data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(
             bow3, labels, test_size=0.1)
 
-        # Treino do modelo
+        # Treinamento do modelo
         classifier = RandomForestClassifier()
         classifier.fit(X_train, y_train)
 
         self.classifier = classifier
 
-    # Previsão do sentimento
+    # predicts the sentiment of a given text using the trained model
     def predict_sentiment(self, text):
         if self.classifier is None or self.vectorizer3 is None:
             raise Exception(
                 "Model not trained yet. Please run 'createmodel()' first.")
 
-        # Pré-processamento da nova crítica
+        # text preprocessing
         preprocessed_text = self.preprocess_text(text)
 
-        # Vetorização usando os mesmos vetores usados ​​no treinamento
+        # vectorization
         vectorized_text = self.vectorizer3.transform([preprocessed_text])
 
-        # Faz a previsão
+        # prediction
         prediction = self.classifier.predict(vectorized_text)
+        
+        # returns the prediction
         return prediction
