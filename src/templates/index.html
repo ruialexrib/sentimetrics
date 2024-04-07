@@ -33,6 +33,11 @@
             text-align: center;
         }
 
+        .title {
+            color: white;
+            text-decoration: none;
+        }
+
         .slogan {
             font-size: 11px;
             color: rgb(180, 180, 180);
@@ -97,7 +102,16 @@
 
         .review-status {
             font-size: 14px;
-            color: #ccc;
+            color: #bbb;
+            padding: 5px;
+            min-width: 80px;
+        }
+
+        .review-status-desc {
+            font-size: 14px;
+            color: #bbb;
+            padding: 5px;
+            line-height: 1.6;
         }
 
         .sentiment-analysis,
@@ -111,6 +125,15 @@
             position: relative;
             color: rgb(155, 155, 155);
             text-align: center;
+        }
+
+        .upload-button {
+            text-align: center;
+        }
+        
+        .upload-button a {
+            color: white;
+            text-decoration: none;
         }
 
         .sentiment-analysis {
@@ -128,7 +151,8 @@
 </head>
 
 <body>
-    <h1><i class="fas fa-robot"></i> Sentimetrics <span class="slogan"> Turning words into sentiments</span></h1>
+    <h1><i class="fas fa-robot"></i> <a class="title" href="/">Sentimetrics</a> <span class="slogan"> Turning words into
+            sentiments</span></h1>
     <div class="container">
         <form action="/add_review" method="post">
             <input type="text" name="description" placeholder="Talk about your experience">
@@ -137,7 +161,7 @@
         <ul>
             {% for review in reviews | sort(attribute='id', reverse=true) %}
             <li>
-                <div class="review-status">{{ review.description }}</div>
+                <div class="review-status-desc">{{ review.description }}</div>
                 <div class="review-status">
                     <span class="{% if review.sentiment == 'positive' %}positive{% else %}negative{% endif %}">
                         {{ review.sentiment }}
@@ -154,6 +178,9 @@
         <form action="/reset" method="post">
             <button type="submit"><i class="fas fa-trash-alt"></i> Clear Reviews</button>
         </form>
+        <div class="upload-button">
+            <a href="/upload"><i class="fas fa-upload"></i> Click here to upload a new model and vectorizer</a>
+        </div>
     </div>
     <div class="sentiment-analysis">
         <p>This software analyzes the sentiment of your reviews! Please enter your opinion, comment, or critique in the

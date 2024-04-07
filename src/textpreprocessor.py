@@ -1,12 +1,14 @@
 import re
 import emoji
-from textblob import TextBlob
-from nltk.tokenize import RegexpTokenizer, word_tokenize
-from nltk.corpus import stopwords, wordnet
+from nltk.tokenize import RegexpTokenizer
+from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 
+# Text preprocessor class to clean and preprocess text data
 class TextPreprocessor:
     def __init__(self):
+
+        # Dictionary of English contractions
         self.contractions_dict = {
             "ain't": "is not",
             "aren't": "are not",
@@ -126,6 +128,8 @@ class TextPreprocessor:
             "you're": "you are",
             "you've": "you have"
         }
+
+        # Dictionary of chat words
         self.chat_words = {
             "AFAIK": "As Far As I Know",
             "AFK": "Away From Keyboard",
@@ -215,6 +219,8 @@ class TextPreprocessor:
             "BFF": "Best friends forever",
             "CSL": "Can't stop laughing"
         }
+
+        # List of additional HTML terms
         self.additional_html_terms = [
             'br', 'hr', 'a', 'img', 'div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
             'strong', 'em', 'u', 'i', 'b', 'ul', 'ol', 'li', 'table', 'tr', 'th', 'td', 'tbody',
@@ -227,14 +233,538 @@ class TextPreprocessor:
             'time', 'title', 'track', 'var', 'video', 'wbr'
         ]
 
+        # List of emotions
+        self.emotions_dict = {
+            "victimized": "cheated",
+            "accused": "cheated",
+            "acquitted": "singled out",
+            "adorable": "loved",
+            "adored": "loved",
+            "affected": "attracted",
+            "afflicted": "sad",
+            "aghast": "fearful",
+            "agog": "attracted",
+            "agonized": "sad",
+            "alarmed": "fearful",
+            "amused": "happy",
+            "angry": "angry",
+            "anguished": "sad",
+            "animated": "happy",
+            "annoyed": "angry",
+            "anxious": "attracted",
+            "apathetic": "bored",
+            "appalled": "angry",
+            "appeased": "singled out",
+            "appreciated": "esteemed",
+            "apprehensive": "fearful",
+            "approved of": "loved",
+            "ardent": "lustful",
+            "aroused": "lustful",
+            "attached": "attached",
+            "attracted": "attracted",
+            "autonomous": "independent",
+            "awed": "fearful",
+            "awkward": "embarrassed",
+            "beaten down": "powerless",
+            "beatific": "happy",
+            "belonging": "attached",
+            "bereaved": "sad",
+            "betrayed": "cheated",
+            "bewildered": "surprise",
+            "bitter": "angry",
+            "blissful": "happy",
+            "blithe": "happy",
+            "blocked": "powerless",
+            "blue": "sad",
+            "boiling": "angry",
+            "bold": "fearless",
+            "bored": "bored",
+            "brave": "fearless",
+            "bright": "happy",
+            "brisk": "happy",
+            "calm": "safe",
+            "capable": "adequate",
+            "captivated": "attached",
+            "careless": "powerless",
+            "categorized": "singled out",
+            "cautious": "fearful",
+            "certain": "fearless",
+            "chagrined": "belittled",
+            "challenged": "attracted",
+            "chastised": "hated",
+            "cheated": "cheated",
+            "cheerful": "happy",
+            "cheerless": "sad",
+            "cheery": "happy",
+            "cherished": "attached",
+            "chicken": "fearful",
+            "cocky": "independent",
+            "codependent": "codependent",
+            "coerced": "cheated",
+            "comfortable": "happy",
+            "common": "average",
+            "competent": "adequate",
+            "complacent": "apathetic",
+            "composed": "adequate",
+            "concerned": "attracted",
+            "confident": "adequate",
+            "confused": "surprise",
+            "connected": "attached",
+            "conned": "cheated",
+            "consumed": "obsessed",
+            "contented": "happy",
+            "controlled": "powerless",
+            "convivial": "happy",
+            "cornered": "entitled",
+            "courageous": "fearless",
+            "cowardly": "fearful",
+            "craving": "attracted",
+            "crestfallen": "sad",
+            "criticized": "hated",
+            "cross": "angry",
+            "cross-examined": "singled out",
+            "crushed": "sad",
+            "curious": "attracted",
+            "cut off": "alone",
+            "daring": "fearless",
+            "dark": "sad",
+            "dedicated": "attracted",
+            "defeated": "powerless",
+            "defenseless": "fearful",
+            "degraded": "belittled",
+            "dejected": "sad",
+            "depressed": "sad",
+            "deserted": "hated",
+            "desirable": "loved",
+            "despondent": "sad",
+            "detached": "alone",
+            "determined": "focused",
+            "diminished": "belittled",
+            "disappointed": "demoralized",
+            "discarded": "hated",
+            "disconsolate": "sad",
+            "discontented": "sad",
+            "discounted": "belittled",
+            "discouraged": "powerless",
+            "disgraced": "belittled",
+            "disgusted": "angry",
+            "disheartened": "demoralized",
+            "disillusioned": "demoralized",
+            "disjointed": "derailed",
+            "dismal": "sad",
+            "dismayed": "fearful",
+            "disoriented": "derailed",
+            "disparaged": "cheated",
+            "displeased": "sad",
+            "disrespected": "belittled",
+            "distressed": "sad",
+            "distrustful": "anxious",
+            "dolorous": "sad",
+            "doubtful": "fearful",
+            "down": "sad",
+            "downhearted": "sad",
+            "dreadful": "sad",
+            "dreary": "sad",
+            "dubious": "anxious",
+            "dull": "sad",
+            "duped": "cheated",
+            "eager": "attracted",
+            "earnest": "attracted",
+            "ecstatic": "happy",
+            "elated": "happy",
+            "embarrassed": "embarrassed",
+            "empathetic": "attached",
+            "enchanted": "attracted",
+            "encouraged": "adequate",
+            "engrossed": "attracted",
+            "enraged": "angry",
+            "enterprising": "fearless",
+            "enthusiastic": "happy",
+            "entrusted": "loved",
+            "esteemed": "esteemed",
+            "excited": "happy",
+            "excluded": "alone",
+            "exempt": "entitled",
+            "exhausted hopeless": "powerless",
+            "exhilarated": "happy",
+            "exploited": "cheated",
+            "exposed": "fearful",
+            "fabulous": "ecstatic",
+            "fainthearted": "fearful",
+            "fantastic": "ecstatic",
+            "fascinated": "attracted",
+            "favored": "entitled",
+            "fearful": "fearful",
+            "fervent": "attracted",
+            "fervid": "attracted",
+            "festive": "happy",
+            "flat": "sad",
+            "focused": "focused",
+            "forced": "powerless",
+            "forsaken": "hated",
+            "framed": "cheated",
+            "free": "free",
+            "free & easy": "happy",
+            "frightened": "fearful",
+            "frisky": "happy",
+            "frustrated": "angry",
+            "full of anticipation": "attracted",
+            "full of ennui": "apathetic",
+            "fuming": "angry",
+            "funereal": "sad",
+            "furious": "angry",
+            "gallant": "fearless",
+            "genial": "happy",
+            "glad": "happy",
+            "gleeful": "happy",
+            "gloomy": "sad",
+            "glum": "sad",
+            "grief-stricken": "sad",
+            "grieved": "sad",
+            "guilt": "sad",
+            "guilty": "singled out",
+            "happy": "happy",
+            "hardy": "fearless",
+            "heartbroken": "sad",
+            "heavyhearted": "sad",
+            "hesitant": "fearful",
+            "high-spirited": "happy",
+            "hilarious": "happy",
+            "hopeful": "attracted",
+            "horny": "lustful",
+            "horrified": "fearful",
+            "hot and bothered": "lustful",
+            "humiliated": "sad",
+            "humorous": "happy",
+            "hurt": "sad",
+            "hysterical": "fearful",
+            "ignored": "hated",
+            "ill at ease": "sad",
+            "immobilized": "apathetic",
+            "immune": "entitled",
+            "important": "happy",
+            "impotent": "powerless",
+            "imprisoned": "entitled",
+            "in a huff": "angry",
+            "in a stew": "angry",
+            "in control": "adequate",
+            "in fear": "fearful",
+            "in pain": "sad",
+            "in the dumps": "sad",
+            "in the zone": "focused",
+            "incensed": "angry",
+            "included": "attached",
+            "indecisive": "anxious",
+            "independent": "free",
+            "indignant": "angry",
+            "infatuated": "lustful",
+            "inflamed": "angry",
+            "injured": "sad",
+            "inquisitive": "attracted",
+            "insecure": "codependent",
+            "insignificant": "belittled",
+            "intent": "attracted",
+            "interested": "attracted",
+            "interrogated": "singled out",
+            "intrigued": "attracted",
+            "irate": "angry",
+            "irresolute": "fearful",
+            "irresponsible": "powerless",
+            "irritated": "angry",
+            "isolated": "alone",
+            "jaunty": "happy",
+            "jocular": "happy",
+            "jolly": "happy",
+            "jovial": "happy",
+            "joyful": "happy",
+            "joyless": "sad",
+            "joyous": "happy",
+            "jubilant": "happy",
+            "justified": "singled out",
+            "keen": "attracted",
+            "labeled": "singled out",
+            "lackadaisical": "bored",
+            "lazy": "apathetic",
+            "left out": "hated",
+            "let down": "hated",
+            "lethargic": "apathetic",
+            "lied to": "cheated",
+            "lighthearted": "happy",
+            "liked": "attached",
+            "lively": "happy",
+            "livid": "angry",
+            "lonely": "alone",
+            "lonesome": "alone",
+            "lost": "lost",
+            "loved": "attached",
+            "low": "sad",
+            "lucky": "happy",
+            "lugubrious": "sad",
+            "macho": "independent",
+            "mad": "angry",
+            "melancholy": "sad",
+            "menaced": "fearful",
+            "merry": "happy",
+            "mirthful": "happy",
+            "misgiving": "fearful",
+            "misunderstood": "alone",
+            "moody": "sad",
+            "moping": "sad",
+            "motivated": "attracted",
+            "mournful": "sad",
+            "needed": "attracted",
+            "needy": "codependent",
+            "nervous": "fearful",
+            "obligated": "powerless",
+            "obsessed": "obsessed",
+            "offended": "angry",
+            "oppressed": "sad",
+            "optionless": "entitled",
+            "ordinary": "average",
+            "organized": "adequate",
+            "out of control": "powerless",
+            "out of sorts": "sad",
+            "outmaneuvered": "entitled",
+            "outraged": "angry",
+            "overjoyed": "happy",
+            "overlooked": "hated",
+            "overwhelmed": "powerless",
+            "panicked": "fearful",
+            "passionate": "lustful",
+            "passive": "apathetic",
+            "pathetic": "sad",
+            "peaceful": "safe",
+            "pensive": "anxious",
+            "perplexed": "anxious",
+            "phobic": "fearful",
+            "playful": "happy",
+            "pleased": "happy",
+            "powerless": "powerless",
+            "pressured": "burdened",
+            "privileged": "entitled",
+            "proud": "happy",
+            "provoked": "angry",
+            "punished": "hated",
+            "put upon": "burdened",
+            "quaking": "fearful",
+            "quiescent": "apathetic",
+            "rageful": "angry",
+            "rapturous": "happy",
+            "rated": "singled out",
+            "reassured": "fearless",
+            "reckless": "powerless",
+            "redeemed": "singled out",
+            "regretful": "sad",
+            "rejected": "alone",
+            "released": "free",
+            "remorse": "sad",
+            "replaced": "hated",
+            "repulsed": "demoralized",
+            "resentful": "angry",
+            "resolute": "fearless",
+            "respected": "esteemed",
+            "responsible": "adequate",
+            "restful": "fearful",
+            "revered": "esteemed",
+            "rueful": "sad",
+            "sad": "sad",
+            "satisfied": "happy",
+            "saucy": "happy",
+            "scared": "fearful",
+            "secure": "fearless",
+            "self-reliant": "fearless",
+            "serene": "happy",
+            "shaky": "fearful",
+            "shamed": "sad",
+            "shocked": "surprise",
+            "significant": "esteemed",
+            "singled out": "singled out",
+            "skeptical": "anxious",
+            "snoopy": "attracted",
+            "somber": "sad",
+            "sparkling": "happy",
+            "spirited": "happy",
+            "spiritless": "sad",
+            "sprightly": "happy",
+            "startled": "surprise",
+            "stereotyped": "singled out",
+            "stifled": "powerless",
+            "stout hearted": "fearless",
+            "strong": "independent",
+            "suffering": "sad",
+            "sulky": "sad",
+            "sullen": "angry",
+            "sunny": "happy",
+            "surprised": "surprise",
+            "suspicious": "anxious",
+            "sympathetic": "codependent",
+            "tense": "anxious",
+            "terrified": "fearful",
+            "terrorized": "fearful",
+            "thankful": "happy",
+            "threatened": "fearful",
+            "thwarted": "powerless",
+            "timid": "fearful",
+            "timorous": "fearful",
+            "torn": "derailed",
+            "tortured": "sad",
+            "tragic": "sad",
+            "tranquil": "happy",
+            "transported": "happy",
+            "trapped": "entitled",
+            "tremulous": "fearful",
+            "tricked": "entitled",
+            "turned on": "lustful",
+            "unapproved of": "hated",
+            "unbelieving": "anxious",
+            "uncertain": "anxious",
+            "unconcerned": "apathetic",
+            "understood": "attached",
+            "unfocussed": "lost",
+            "unlovable": "hated",
+            "unloved": "hated",
+            "unmotivated": "apathetic",
+            "unshackled": "free",
+            "unsupported": "belittled",
+            "up in arms": "angry",
+            "upset": "fearful",
+            "validated": "loved",
+            "valued": "esteemed",
+            "victimized": "sad",
+            "violated": "cheated",
+            "virulent": "angry",
+            "vivacious": "happy",
+            "vulnerable": "powerless",
+            "wavering": "anxious",
+            "weak": "powerless",
+            "welcomed": "loved",
+            "woebegone": "sad",
+            "woeful": "sad",
+            "worn down": "powerless",
+            "worn out": "powerless",
+            "worried": "fearful",
+            "worshiped": "esteemed",
+            "wrathful": "angry",
+            "wronged": "singled out",
+            "wrought up": "angry",
+            "yearning": "lustful",
+            "yellow": "fearful",
+            "zealous": "attracted",
+            "abandoned": "hated",
+            "absolved": "singled out",
+            "absorbed": "attracted",
+            "abused": "powerless",
+            "accepted": "loved",
+            "aching": "sad",
+            "acrimonious": "angry",
+            "addicted": "codependent",
+            "adequate": "adequate",
+            "admired": "esteemed",
+            "affectionate": "attached",
+            "affronted": "singled out",
+            "afraid": "fearful",
+            "airy": "happy",
+            "alone": "alone",
+            "ambivalent": "bored",
+            "apathetic": "apathetic",
+            "apprehensive": "anxious",
+            "arrogant": "independent",
+            "ashamed": "embarrassed",
+            "astonished": "surprise",
+            "at ease": "safe",
+            "attacked": "fearful",
+            "audacious": "fearless",
+            "autonomous": "free",
+            "average": "average",
+            "avid": "attracted",
+            "baffled": "lost",
+            "bashful": "powerless",
+            "belittled": "belittled",
+            "buoyant": "happy",
+            "burdened": "burdened",
+            "clouded": "sad",
+            "committed": "focused",
+            "compassionate": "attached",
+            "compelled": "obsessed",
+            "dauntless": "fearless",
+            "debonair": "happy",
+            "deceived": "entitled",
+            "delighted": "ecstatic",
+            "demoralized": "demoralized",
+            "derailed": "derailed",
+            "desirous": "attracted",
+            "despairing": "sad",
+            "devastated": "angry",
+            "diffident": "fearful",
+            "discredited": "belittled",
+            "disheartened": "sad",
+            "disinclined": "demoralized",
+            "disorganized": "powerless",
+            "downcast": "sad",
+            "entitled": "entitled",
+            "excited": "adequate",
+            "exultant": "happy",
+            "fidgety": "fearful",
+            "frowning": "sad",
+            "full of misgiving": "anxious",
+            "great": "happy",
+            "hapless": "sad",
+            "hated": "hated",
+            "heroic": "fearless",
+            "hostile": "angry",
+            "in despair": "sad",
+            "indifferent": "bored",
+            "infuriated": "angry",
+            "insecure": "fearful",
+            "inspired": "happy",
+            "inspiring": "attracted",
+            "judged": "singled out",
+            "justified": "singled out",
+            "laughting": "happy",
+            "loved": "loved",
+            "loving": "attached",
+            "low": "sad",
+            "lustful": "lustful",
+            "manipulated": "cheated",
+            "mumpish": "sad",
+            "nosey": "attracted",
+            "numb": "apathetic",
+            "obliterated": "powerless",
+            "peaceful": "happy",
+            "petrified": "fearful",
+            "piqued": "angry",
+            "piteous": "sad",
+            "powerless": "powerless",
+            "questioning": "anxious",
+            "rejected": "hated",
+            "self-satisfied": "happy",
+            "set up": "entitled",
+            "shut out": "alone",
+            "sorrowful": "sad",
+            "spirited": "sad",
+            "supported": "esteemed",
+            "suspicious": "fearful",
+            "terrific": "happy",
+            "trapped": "entitled",
+            "trembling": "fearful",
+            "uncomfortable": "anxious",
+            "underestimated": "belittled",
+            "unhappy": "sad",
+            "vindicated": "singled out",
+            "worked up": "angry"
+        }
+
+    # convert text to lowercase
     def to_lower(self, text):
         return text.lower()
 
+    # expand contractions
     def expand_contractions(self, text):
         expanded_text = ' '.join(self.contractions_dict.get(
             word, word) for word in text.split())
         return expanded_text
 
+    # remove HTML tags
     def remove_html_tags(self, text):
         additional_terms_pattern = '|'.join(
             re.escape(term) for term in self.additional_html_terms)
@@ -242,73 +772,60 @@ class TextPreprocessor:
         clean_text = re.sub(regex_pattern, '', text)
         return clean_text
 
+    # remove URLs
     def remove_urls(self, text):
         return re.sub(r'http\S+', '', text)
 
+    # remove special characters
     def remove_special_characters(self, text):
         text = re.sub(r'[^a-zA-Z\s]', '', text)
         text = re.sub(r'\s+', ' ', text)
         return text.strip()
 
+    # remove punctuation
     def remove_punctuation(self, text):
         text = re.sub(r'[^\w\s]', '', text)
         return text
 
+    # remove emojis
     def remove_emojis(self, text):
         return emoji.demojize(text, delimiters=(" ", " "))
 
+    # expand chat words
     def expand_chatwords(self, text):
         expanded_text = ' '.join(self.chat_words.get(word, word)
                                  for word in text.split())
         return expanded_text
 
-    def correct_spelling(self, text):
-        return TextBlob(text).correct()
+    def expand_emotions(self, text):
+        text = text.lower()
+        for emotion, description in self.emotions_dict.items():
+            text = text.replace(emotion, description)    
+        return text
 
+    # tokenize text
     def tokenize_text(self, text):
         tokenizer = RegexpTokenizer(r'\w+')
         tokens = tokenizer.tokenize(text)
         return tokens
 
+    # remove stopwords
     def remove_stopwords(self, tokens):
         stop_words = set(stopwords.words('english'))
         filtered_tokens = [
             token for token in tokens if token.lower() not in stop_words]
         return filtered_tokens
 
+    # stem tokens
     def stem_tokens(self, tokens):
         porter = PorterStemmer()
         stemmed_tokens = [porter.stem(token) for token in tokens]
         return stemmed_tokens
 
+    # lemmatize tokens
     def lemmatize_tokens(self, tokens):
         lemmatizer = WordNetLemmatizer()
         lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
         return lemmatized_tokens
 
-    def replace_synonyms(self, tokens):
-        synonyms_replaced = []
-        for token in tokens:
-            synonyms = []
-            for syn in wordnet.synsets(token):
-                for lemma in syn.lemmas():
-                    synonyms.append(lemma.name())
-            if synonyms:
-                synonyms_replaced.append(synonyms[0])  # Use the first synonym
-            else:
-                synonyms_replaced.append(token)
-        return synonyms_replaced
 
-    def count_tokens(self, text_column):
-        total_tokens = 0
-        for text in text_column:
-            if isinstance(text, list):
-                text = ' '.join(text)
-            elif not isinstance(text, str):
-                raise ValueError(
-                    "Unsupported data type. Only lists and strings are supported.")
-
-            tokens = word_tokenize(text)
-            total_tokens += len(tokens)
-
-        return total_tokens
