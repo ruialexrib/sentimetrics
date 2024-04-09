@@ -3,6 +3,8 @@ import emoji
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
+from nltk.tokenize import word_tokenize
+from nltk.corpus import wordnet
 
 # Text preprocessor class to clean and preprocess text data
 class TextPreprocessor:
@@ -828,4 +830,37 @@ class TextPreprocessor:
         lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
         return lemmatized_tokens
 
+    # remove negation
+    def remove_negation(self, text):
+        tokens = word_tokenize(text)
+        stop_words = set(stopwords.words('english'))
 
+        negations = {"not", "n't"}
+
+        result_tokens = []
+        negate = False
+        for token in tokens:
+            if token.lower() in negations:
+                negate = True
+                continue
+            
+            if negate and token.lower() in stop_words:
+                negate = False
+                continue
+
+            if negate:
+                antonyms = set()
+                for syn in wordnet.synsets(token):
+                    for lemma in syn.lemmas():
+                        if lemma.antonyms():
+                            antonyms.add(lemma.antonyms()[0].name())
+
+                if antonyms:
+                    result_tokens.append(min(antonyms, key=len))  # Adiciona o antônimo mais curto
+                else:
+                    result_tokens.append(token)
+                negate = False
+            else:
+                result_tokens.append(token)
+
+        return ' '.join(result_tokens)

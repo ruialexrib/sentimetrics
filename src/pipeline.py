@@ -25,6 +25,7 @@ class Pipeline:
             'remove_urls',
             'remove_emojis',
             'expand_contractions',
+            'remove_negation',
             'expand_chatwords',
             'remove_special_characters',
             'remove_punctuation',
